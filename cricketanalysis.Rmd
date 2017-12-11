@@ -1,0 +1,169 @@
+---
+title: "Cricket Analysis"
+author: "Adarsh James"
+date: "2 December 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+```
+## Read data
+
+```{r, message=FALSE, warning=FALSE}
+odi=read.csv("C://Users//Administrator//Downloads//datasets-master//odi-batting.csv")
+library(knitr)
+library(dplyr)
+kable(odi[1:5,])
+```
+
+## Top ten countries 
+```{r, message=FALSE, warning=FALSE}
+library(knitr)
+library(dplyr)
+top_countries = odi %>%  group_by(Country) %>% summarise(Total_runs=sum(Runs,na.rm=T)) %>% arrange(-Total_runs)
+kable(top_countries[1:10,])
+```
+
+## Playerstats
+```{r, message=FALSE, warning=FALSE}
+library(knitr)
+library(dplyr)
+playerstats = odi %>% group_by(Player) %>% summarise(totalruns=sum(Runs,na.rm=T), matches= n()) %>% arrange(-totalruns) %>% filter(matches>20)
+kable(playerstats[1:10,])
+```
+
+##plyrsts
+```{r}
+library(knitr)
+library(dplyr)
+plrsts= odi %>% group_by(Player,Country) %>% summarise(totalodiruns= sum(Runs,na.rm=T), matchs= n()) %>% arrange(Country)%>% filter(matchs>30)
+kable(plrsts[1:10,])
+
+```
+##  Top ten players
+```{r}
+library(knitr)
+library(dplyr)
+topplyr= odi %>% group_by(Player) %>% summarise(TOTAL_RUNS =sum(Runs,na.rm=T),Country=first(Country)) %>% arrange(-TOTAL_RUNS)
+kable(topplyr[1:10, ])
+```
+
+
+##top ten players by total no of centuries 
+```{r, message=FALSE, warning=FALSE}
+top_plr_cent = odi %>% filter(Runs>99) %>% group_by(Player) %>% summarise(matchs= n()) %>% arrange(-matchs)
+kable(top_plr_cent[1:10, ])
+```
+
+##top ten players by total no of ducks
+```{r, message=FALSE, warning=FALSE}
+top_plr_duck = odi %>% filter(Runs==0) %>% group_by(Player) %>% summarise(matchs= n()) %>% arrange(-matchs)
+kable(top_plr_duck[1:10, ])
+```
+
+##top ten countries by total no of players
+```{r, message=FALSE, warning=FALSE}
+topcountries = odi %>% group_by(Country) %>% summarise(total_no_player= length(unique(Player))) %>% arrange(-total_no_player)
+
+kable(topcountries[1:10,])
+
+```
+##or
+```{r, message=FALSE, warning=FALSE}
+topcountries2 = odi %>% group_by(Country) %>% summarise(total_no_player= n_distinct(Player)) %>% arrange(-total_no_player)
+
+kable(topcountries2[1:10,])
+
+```
+
+
+
+
+
+
+##top ten grounds by total centuries
+```{r, message=FALSE, warning=FALSE}
+topgrounds = odi %>% filter(Runs>99) %>% group_by(Ground) %>% summarise(centuries = n()) %>% arrange(-centuries)
+kable(topgrounds[1:10,])
+```
+
+
+##sachin
+```{r, message=FALSE, warning=FALSE}
+sachin= odi%>% filter(Player== "Sachin R Tendulkar",Runs==0)%>% summarise(player= first(Player), ducks=n())
+head(sachin)
+```
+
+##sachin ducks
+```{r, message=FALSE, warning=FALSE}
+sachinmatches=odi%>% filter(Player=="Sachin R Tendulkar")
+sachinducks= sachinmatches%>%filter(Runs==0)
+verusducks=sachinducks%>% group_by(Versus)%>%summarise(ducks=n())%>% arrange(-ducks)
+verusducks
+```
+##sachin centuries
+```{r, message=FALSE, warning=FALSE}
+sachinmatches=odi%>% filter(Player=="Sachin R Tendulkar")
+sachincent= sachinmatches%>%filter(Runs>=100)
+veruscent=sachincent%>% group_by(Versus)%>%summarise(cent=n())%>% arrange(-cent)
+kable(veruscent[1:10,])
+```
+
+##no of times SACHIN MISSED 100
+```{r, message=FALSE, warning=FALSE}
+sachinmissed100=sachinmatches%>% filter(Runs>90,Runs<100)
+kable(sachinmissed100)
+```
+## no of 50s
+```{r, message=FALSE, warning=FALSE}
+sachin50s=sachinmatches%>% filter(Runs>49,Runs<100)
+kable(sachin50s)
+```
+
+
+
+## adding columns
+```{r}
+oditemp=odi
+oditemp=oditemp %>% mutate(ducks=if_else(Runs==0,1,0))
+oditemp=oditemp %>% mutate(centuries=if_else(Runs>99,1,0))
+oditemp=oditemp %>% mutate(missedcenturies=if_else(Runs>90 & Runs<100,1,0))
+oditemp=oditemp %>% mutate(fifties=if_else(Runs>49 & Runs<100,1,0))
+viewhead(oditemp)
+
+oditemp
+```
+
+
+```{r}
+player_summary = oditemp %>% group_by(Player)%>% summarise(totalruns=sum(Runs,na.rm=T),centuries=sum(centuries,na.rm=T),fifty=sum(fifties,na.rm=T),duck=sum(ducks,na.rm=T),Missed_centuries=sum(missedcenturies,na.rm=T))%>% arrange(-totalruns)
+kable(player_summary[1:10,])
+```
+
+
+
+## convert match date to date fromat
+```{r}
+odi=read.csv("C://Users//Administrator//Downloads//datasets-master//odi-batting.csv")
+oditemp=odi
+oditemp$Date = as.Date(as.character(oditemp$MatchDate), format = "%m-%d-%Y")
+str(oditemp)
+oditemp=oditemp%>% mutate(YEAR= year(Date))
+oditemp=oditemp %>% mutate(MONTH=month(Date))
+oditemp = oditemp%>% mutate(DAY=day(Date))
+oditemp= oditemp%>% mutate(DAY_OF_WEEK= weekdays(Date))
+View(oditemp)
+```
+
+## yearwise centuries of sachin
+```{r}
+
+yrwisecent= oditemp %>% filter(Player=="Sachin R Tendulkar") %>% group_by(YEAR) %>% summarise(totalcenturies= sum(Centuries))%>% arrange(YEAR)
+print(yrwisecent)
+```
+
